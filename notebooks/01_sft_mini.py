@@ -41,7 +41,7 @@ else:  # BIGGPU
     PER_DEVICE_BATCH = 2
     GRAD_ACCUM = 4
 
-SFT_DATASET = os.environ.get("SFT_DATASET", "5CD-AI/Vietnamese-alpaca-cleaned")
+SFT_DATASET = os.environ.get("SFT_DATASET", "5CD-AI/Vietnamese-alpaca-gpt4-gg-translated")
 SFT_SLICE = 1000
 NUM_EPOCHS = 1
 
@@ -106,8 +106,9 @@ print(f"Trainable params: {sum(p.numel() for p in model.parameters() if p.requir
 # %% [markdown]
 # ## 2. Load + format VN Alpaca slice
 #
-# `5CD-AI/Vietnamese-alpaca-cleaned` is a 50k-row VN Alpaca translation. Lab 21
-# uses 1k slice for the demo run; we match that exactly so reward gap is comparable.
+# `5CD-AI/Vietnamese-alpaca-gpt4-gg-translated` is a ~52k-row VN Alpaca-style
+# translation. Lab 21 uses a 1k slice for the demo run; we keep that scale so
+# reward-gap comparisons stay lightweight on Colab.
 
 # %%
 from datasets import load_dataset
@@ -118,15 +119,63 @@ print(f"\nFirst row:\n{ds[0]}")
 
 # %%
 # Alpaca → ChatML format (Qwen2.5's native template)
+import math
+import pandas as pd
+
+CHATML_FALLBACK_TEMPLATE = """{%- for message in messages %}
+{{- '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}
+{%- endfor %}
+{%- if add_generation_prompt %}
+{{- '<|im_start|>assistant\n' }}
+{%- endif %}
+"""
+
+
+def ensure_chat_template(tokenizer):
+    if getattr(tokenizer, "chat_template", None):
+        return
+    tokenizer.chat_template = CHATML_FALLBACK_TEMPLATE
+    print("Set fallback tokenizer.chat_template (ChatML)")
+
+
+ensure_chat_template(tokenizer)
+
+
+def normalize_text(value):
+    if value is None:
+        return ""
+    if isinstance(value, float) and math.isnan(value):
+        return ""
+    try:
+        is_missing = pd.isna(value)
+    except Exception:
+        is_missing = False
+    if is_missing is True:
+        return ""
+    return str(value).strip()
+
+
+def has_trainable_example(row):
+    instruction = normalize_text(row.get("instruction"))
+    output = normalize_text(row.get("output"))
+    return bool(instruction and output)
+
+
+before_filter = len(ds)
+ds = ds.filter(has_trainable_example)
+print(f"Kept {len(ds)}/{before_filter} rows with non-empty instruction/output")
+
+
 def format_alpaca_to_chat(row):
-    messages = []
-    if row.get("instruction"):
-        prompt = row["instruction"]
-        if row.get("input"):
-            prompt += "\n\n" + row["input"]
-        messages.append({"role": "user", "content": prompt})
-    if row.get("output"):
-        messages.append({"role": "assistant", "content": row["output"]})
+    prompt = normalize_text(row["instruction"])
+    extra_input = normalize_text(row.get("input"))
+    output = normalize_text(row["output"])
+    if extra_input:
+        prompt += "\n\n" + extra_input
+    messages = [
+        {"role": "user", "content": prompt},
+        {"role": "assistant", "content": output},
+    ]
     text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
     return {"text": text}
 
@@ -158,6 +207,46 @@ sft_config = SFTConfig(
     dataset_text_field="text",
     report_to="none",
 )
+
+# Fast preflight: catch empty / malformed examples before the full training loop.
+all_token_lengths = [
+    len(tokenizer(text, truncation=True, max_length=MAX_LEN)["input_ids"])
+    for text in ds_formatted["text"]
+]
+assert min(all_token_lengths) > 0, "Found an empty formatted SFT sample"
+print(
+    f"Validated {len(all_token_lengths)} formatted samples · token length range: "
+    f"{min(all_token_lengths)}-{max(all_token_lengths)}"
+)
+
+preview_count = min(4, len(ds_formatted))
+assert preview_count > 0, "No trainable SFT rows left after filtering"
+if preview_count == 1:
+    preview_indices = [0]
+else:
+    preview_indices = sorted(
+        {int(i * (len(ds_formatted) - 1) / (preview_count - 1)) for i in range(preview_count)}
+    )
+preview_rows = ds.select(preview_indices)
+preview_batch = ds_formatted.select(preview_indices)["text"]
+for row, text in zip(preview_rows, preview_batch):
+    expected_output = normalize_text(row["output"])
+    assert expected_output and expected_output in text, "Formatted sample is missing assistant content"
+preview_tokens = tokenizer(
+    preview_batch,
+    padding=True,
+    truncation=True,
+    max_length=MAX_LEN,
+    return_tensors="pt",
+)
+preview_labels = preview_tokens["input_ids"].clone()
+preview_labels[preview_tokens["attention_mask"] == 0] = -100
+preview_inputs = {key: value.to("cuda") for key, value in preview_tokens.items()}
+preview_inputs["labels"] = preview_labels.to("cuda")
+with torch.no_grad():
+    preview_loss = model(**preview_inputs).loss.detach().float().item()
+assert math.isfinite(preview_loss), f"Preflight loss is not finite: {preview_loss}"
+print(f"Preflight loss on {preview_count} samples: {preview_loss:.4f}")
 
 trainer = SFTTrainer(
     model=model,

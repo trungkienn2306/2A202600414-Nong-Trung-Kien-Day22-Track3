@@ -2,7 +2,9 @@
 
 Drop the following PNG/JPG files into this folder before submitting. Filenames are *suggested*, not required — the grader reads `REFLECTION.md` to map screenshots to evidence.
 
-## Minimum (6 shots)
+If you are running the split free-Colab path, use [`COLAB_T4_SPLIT_GUIDE.md`](COLAB_T4_SPLIT_GUIDE.md) for the exact notebook / NB / step to capture.
+
+## Minimum (7 shots)
 
 1. **`01-setup-gpu.png`** — terminal output (or Colab cell output) showing `nvidia-smi` or `torch.cuda.get_device_name()` with VRAM. Establishes which tier you ran.
 2. **`02-sft-loss.png`** — Notebook 01 final loss curve (matplotlib output) showing monotonic decrease over 1 epoch on the SFT-mini build.
@@ -14,9 +16,9 @@ Drop the following PNG/JPG files into this folder before submitting. Filenames a
 
 ## Optional — for the +20 bonus rigor add-ons (mentioned in `rubric.md`)
 
-7. **`bonus-beta-sweep.png`** — chart of reward gap vs β over {0.05, 0.1, 0.5}. (+6 add-on)
-8. **`bonus-vn-data-sample.png`** — if you completed the BONUS-CHALLENGE provocation #1 (VN preference set), screenshot of 3 native-VN preference pairs you generated.
-9. **`bonus-creative-challenge.png`** — your choice. Whatever the most interesting visual from your `bonus/` folder is — collapse-curve from self-rewarding, win-rate matrix from DPO/ORPO/SimPO trinity, etc.
+8. **`bonus-beta-sweep.png`** — chart of reward gap vs β over {0.05, 0.1, 0.5}. (+6 add-on)
+9. **`bonus-vn-data-sample.png`** — if you completed the BONUS-CHALLENGE provocation #1 (VN preference set), screenshot of 3 native-VN preference pairs you generated.
+10. **`bonus-creative-challenge.png`** — your choice. Whatever the most interesting visual from your `bonus/` folder is — collapse-curve from self-rewarding, win-rate matrix from DPO/ORPO/SimPO trinity, etc.
 
 ## Tips
 

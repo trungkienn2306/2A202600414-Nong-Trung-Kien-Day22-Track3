@@ -13,12 +13,24 @@ __pycache__/
 # for grading). The Jupytext `.py` files are the source-of-truth template;
 # `.ipynb` is the student's executed deliverable.
 
-# Lab artifacts (regenerated on every run; do not commit)
-data/pref/
+# Lab artifacts (keep lightweight submission artifacts; ignore large regenerated weights)
+data/pref/*
+!data/pref/*.parquet
+data/eval/*
+!data/eval/*.json
+!data/eval/*.jsonl
 data/eval_prompts.json
-adapters/sft-mini/
-adapters/dpo/
+adapters/sft-mini/*
+!adapters/sft-mini/adapter_config.json
+adapters/dpo/*
+!adapters/dpo/adapter_config.json
+!adapters/dpo/dpo_metrics.json
 adapters/orpo/
+adapters/**/*.safetensors
+adapters/**/tokenizer.json
+adapters/**/tokenizer_config.json
+adapters/**/chat_template.jinja
+adapters/**/README.md
 gguf/
 *.gguf
 runs/

@@ -180,6 +180,21 @@ alpaca_prompts = load_alpaca_lite_prompts(LIMIT_ALPACA)
 print(f"Loaded {len(alpaca_prompts)} AlpacaEval-lite prompts")
 
 # %%
+CHATML_FALLBACK_TEMPLATE = """{%- for message in messages %}
+{{- '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}
+{%- endfor %}
+{%- if add_generation_prompt %}
+{{- '<|im_start|>assistant\n' }}
+{%- endif %}
+"""
+
+
+def ensure_chat_template(tokenizer):
+    if getattr(tokenizer, "chat_template", None):
+        return
+    tokenizer.chat_template = CHATML_FALLBACK_TEMPLATE
+
+
 def generate_with_adapter(adapter_path, prompts, max_new_tokens=256):
     """NB4 pattern: load base + adapter, generate, free memory."""
     from unsloth import FastLanguageModel
@@ -193,6 +208,7 @@ def generate_with_adapter(adapter_path, prompts, max_new_tokens=256):
     )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
+    ensure_chat_template(tokenizer)
     model = PeftModel.from_pretrained(model, str(adapter_path))
     FastLanguageModel.for_inference(model)
 

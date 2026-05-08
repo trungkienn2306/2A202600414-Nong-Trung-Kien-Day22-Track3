@@ -22,13 +22,52 @@ Build SFT-mini checkpoint → train DPO adapter → compare SFT-only vs SFT+DPO 
 
 ## Quick Start — T4 (recommended)
 
-**Option 1: Free Colab (zero install)**
+**Recommended for this machine: Free Colab T4**
 
-[![Open T4 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/<your-username>/Day22-Track3-DPO-Alignment-Lab/blob/main/colab/Lab22_DPO_T4.ipynb)
+Nếu máy local không có NVIDIA CUDA GPU, ví dụ Intel Iris Xe / shared GPU memory, hãy chạy bằng Google Colab T4. CPU hoặc Intel iGPU không phù hợp cho DPO.
 
-Click → Runtime → Change runtime type → **T4 GPU** → Run all.
+**Option 1: Open the split T4 Colab notebooks (recommended)**
 
-**Option 2: Local laptop (≥ 12 GB VRAM)**
+Open and run in this order:
+
+```text
+colab/Lab22_DPO_T4_Part1.ipynb
+colab/Lab22_DPO_T4_Part2.ipynb
+```
+
+Flow in Colab:
+1. Runtime → Change runtime type → **T4 GPU**.
+2. Run all cells in `Lab22_DPO_T4_Part1.ipynb`.
+3. Download `day22-colab-part1.zip` from the final cell.
+4. Start a fresh runtime.
+5. Run the restore cell near the top of `Lab22_DPO_T4_Part2.ipynb`, upload `day22-colab-part1.zip`, then run the remaining cells.
+6. Download `day22-colab-part2.zip` from the final cell.
+
+For the exact screenshot map by notebook / NB / step number, see [`submission/screenshots/COLAB_T4_SPLIT_GUIDE.md`](submission/screenshots/COLAB_T4_SPLIT_GUIDE.md).
+
+`colab/Lab22_DPO_T4.ipynb` is still kept as the single-notebook fallback, but the split 2-part flow is safer on free Colab because long runtimes often reset before NB6 finishes.
+
+**Option 2: Clone the repo in Colab and use Makefile targets**
+
+```bash
+!git clone https://github.com/<your-username>/Day22-Track3-DPO-Alignment-Lab.git
+%cd Day22-Track3-DPO-Alignment-Lab
+!bash setup-colab.sh
+!make smoke
+!make pipeline
+```
+
+After `make pipeline`, fill `submission/REFLECTION.md` and collect screenshots before running `make verify`; otherwise verify will fail by design.
+
+If you need a fallback packaging path outside the notebook final cells, run:
+
+```bash
+!python scripts/package_colab_artifacts.py --download
+```
+
+Inspect `submission/colab_artifact_manifest.json`, confirm the zip does not contain credentials or API keys, then save `day22-colab-artifacts.zip`. Extract it into this repo locally, fill `submission/REFLECTION.md`, and rerun `make verify` in Colab or locally after the reflection/screenshots are complete.
+
+**Option 3: Local laptop only if you have NVIDIA CUDA GPU ≥ 12 GB VRAM**
 
 ```bash
 git clone https://github.com/<your-username>/Day22-Track3-DPO-Alignment-Lab.git
@@ -39,7 +78,7 @@ make pipeline           # full pipeline: sft → data → dpo → eval → deplo
 make verify             # pre-submission gatekeeper
 ```
 
-Yêu cầu: **Python 3.10–3.12**, NVIDIA GPU ≥ 12 GB VRAM (3060/4060 trở lên), CUDA 11.8 hoặc 12.1+.
+Yêu cầu local: **Python 3.10–3.12**, NVIDIA GPU ≥ 12 GB VRAM (3060/4060 trở lên), CUDA 11.8 hoặc 12.1+.
 
 ### Tất cả lệnh `make`
 
@@ -87,7 +126,7 @@ Hoặc Colab Pro / Kaggle: open `colab/Lab22_DPO_BigGPU.ipynb` (badge link sẽ 
 
 **Source format:** Notebooks live as Jupytext `.py` files (small, easy to review). `setup-laptop.sh` and `make smoke` auto-convert to `.ipynb`. Edit `.ipynb` in Jupyter and Jupytext keeps both in sync.
 
-**Colab variant:** `colab/Lab22_DPO_T4.ipynb` and `colab/Lab22_DPO_BigGPU.ipynb` are stitched-together single-file `.ipynb` — same content as the 5 Jupytext sources but ready to launch via badge. Pick the laptop path or the Colab path; both produce identical artifacts.
+**Colab variant:** `colab/Lab22_DPO_T4_Part1.ipynb` + `colab/Lab22_DPO_T4_Part2.ipynb` are the recommended free-Colab path, while `colab/Lab22_DPO_T4.ipynb` remains as the single-notebook fallback and `colab/Lab22_DPO_BigGPU.ipynb` remains the full-GPU path. All three Colab variants produce the same rubric artifacts when run successfully.
 
 ---
 
@@ -199,18 +238,21 @@ Full provocations: [`BONUS-CHALLENGE.md`](BONUS-CHALLENGE.md) (tiếng Việt) �
 │   └── 06_benchmark.py             # IFEval/GSM8K/MMLU/AlpacaEval-lite + 4-bar plot
 ├── colab/                          # Colab-launchable .ipynb mirrors
 │   ├── Lab22_DPO_T4.ipynb
+│   ├── Lab22_DPO_T4_Part1.ipynb
+│   ├── Lab22_DPO_T4_Part2.ipynb
 │   └── Lab22_DPO_BigGPU.ipynb
 ├── scripts/
 │   ├── prepare_preference_data.py  # CLI wrapper for NB2 logic
 │   ├── train_dpo.py                # CLI wrapper for NB3 logic
 │   ├── eval_judge.py               # OpenAI/Anthropic judge — falls back to manual
 │   ├── merge_and_gguf.py           # CLI wrapper for NB5 logic
+│   ├── package_colab_artifacts.py  # zip Colab outputs for local download
 │   └── verify.py                   # pre-submission gatekeeper
 ├── data/                           # gitignored; populated by NB2 / scripts
 ├── adapters/                       # gitignored; SFT + DPO outputs
 ├── submission/
-│   ├── REFLECTION.md               # personal report template (6 sections)
-│   └── screenshots/                # add 6 required + 3 optional screenshots
+│   ├── REFLECTION.md               # personal report template (7 sections)
+│   └── screenshots/                # add 7 required + 3 optional screenshots
 └── solutions/                      # released after submission deadline
     └── README.md
 ```
@@ -245,13 +287,14 @@ Full provocations: [`BONUS-CHALLENGE.md`](BONUS-CHALLENGE.md) (tiếng Việt) �
    git init -b main
    git remote add origin https://github.com/<your-username>/Day22-Track3-DPO-Alignment-Lab.git
    ```
-2. Hoàn thành 5 notebooks (giữ output cells trong `.ipynb`).
-3. Add ảnh chụp vào `submission/screenshots/` (xem [`submission/screenshots/README.md`](submission/screenshots/README.md) để biết list 6+3).
-4. Điền [`submission/REFLECTION.md`](submission/REFLECTION.md) (6 sections, ≥150 từ §3 + §6).
+2. Hoàn thành 6 notebooks gốc **hoặc** 2 notebook Colab tách (`Lab22_DPO_T4_Part1.ipynb`, `Lab22_DPO_T4_Part2.ipynb`) **hoặc** 1 notebook Colab nguyên khối (`Lab22_DPO_T4.ipynb`), và giữ output cells trong `.ipynb`.
+3. Add ảnh chụp vào `submission/screenshots/` (xem [`submission/screenshots/README.md`](submission/screenshots/README.md) và [`submission/screenshots/COLAB_T4_SPLIT_GUIDE.md`](submission/screenshots/COLAB_T4_SPLIT_GUIDE.md)).
+4. Điền [`submission/REFLECTION.md`](submission/REFLECTION.md) (7 sections, ≥150 từ §3 + §6).
 5. `make verify` — pre-submission gatekeeper. Nếu fail, fix và rerun.
-6. Push lên public repo:
+6. Push lên public repo. Stage theo allowlist, không dùng `git add -A` nếu bạn có file secret/local tạm:
    ```bash
-   git add -A
+   git add README.md rubric.md Makefile setup-colab.sh setup-laptop.sh requirements*.txt pyproject.toml \
+           notebooks colab scripts submission data adapters gguf PLAN_100_POINTS.md instruction.md
    git commit -m "Lab 22 submission — <Họ Tên>"
    git push -u origin main
    ```
@@ -271,7 +314,7 @@ Full provocations: [`BONUS-CHALLENGE.md`](BONUS-CHALLENGE.md) (tiếng Việt) �
 - **Slide deck:** [`day22/day07-dpo-orpo-alignment-tu-sft-en-preference-learning.tex`](../day07-dpo-orpo-alignment-tu-sft-en-preference-learning.tex)
 - **Sibling Day 21 lab** (LoRA/QLoRA fine-tuning, the SFT predecessor): [VinUni-AI20k/Day21-Track3-Finetuning-LLMs-LoRA-QLoRA](https://github.com/VinUni-AI20k/Day21-Track3-Finetuning-LLMs-LoRA-QLoRA)
 - **Stack:** Unsloth (Daniel Han + Mike Han), TRL (Hugging Face), PEFT, bitsandbytes, llama.cpp
-- **Datasets:** UltraFeedback (Argilla), `5CD-AI/Vietnamese-alpaca-cleaned`
+- **Datasets:** UltraFeedback (Argilla), `5CD-AI/Vietnamese-alpaca-gpt4-gg-translated`
 
 ---
 

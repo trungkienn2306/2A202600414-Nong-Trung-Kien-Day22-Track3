@@ -88,6 +88,25 @@ print(f"Loaded {len(ds)} pairs. Columns: {ds.column_names}")
 # include the chat template tokens — Trainer doesn't apply template internally.
 
 # %%
+CHATML_FALLBACK_TEMPLATE = """{%- for message in messages %}
+{{- '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}
+{%- endfor %}
+{%- if add_generation_prompt %}
+{{- '<|im_start|>assistant\n' }}
+{%- endif %}
+"""
+
+
+def ensure_chat_template(tokenizer):
+    if getattr(tokenizer, "chat_template", None):
+        return
+    tokenizer.chat_template = CHATML_FALLBACK_TEMPLATE
+    print("Set fallback tokenizer.chat_template (ChatML)")
+
+
+ensure_chat_template(tokenizer)
+
+
 def format_pref(row):
     prompt_msgs = [{"role": "user", "content": row["prompt"]}]
     prompt_text = tokenizer.apply_chat_template(

@@ -1,0 +1,11 @@
+{
+  "compute_tier": "T4",
+  "base_model": "unsloth/Qwen2.5-3B-bnb-4bit",
+  "beta": 0.1,
+  "lr": 5e-07,
+  "epochs": 1,
+  "final_train_loss": 0.7336924800872803,
+  "end_chosen_reward": -0.7300568342208862,
+  "end_rejected_reward": -1.0518994569778441,
+  "end_reward_gap": 0.32184262275695796
+}

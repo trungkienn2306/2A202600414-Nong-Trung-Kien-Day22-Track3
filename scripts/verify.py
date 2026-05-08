@@ -114,7 +114,7 @@ def smoke_check(repo: Path) -> int:
 
     # Imports
     try:
-        import torch  # noqa: WPS433
+        import torch
         print(f"  ✓ torch              {torch.__version__}")
         if torch.cuda.is_available():
             dev = torch.cuda.get_device_properties(0)
@@ -153,7 +153,7 @@ def smoke_check(repo: Path) -> int:
     # NB6 benchmark dependency check
     try:
         import lm_eval  # noqa: F401
-        print(f"  ✓ lm_eval (NB6 benchmark suite)")
+        print("  ✓ lm_eval (NB6 benchmark suite)")
     except ImportError:
         problems.append("lm_eval missing — pip install -r requirements.txt (NB6 will fail)")
 
@@ -218,7 +218,7 @@ def main() -> int:
 
     # Submission artifacts
     check_reflection_edited(repo / "submission" / "REFLECTION.md", problems)
-    n_shots = check_screenshots(repo / "submission" / "screenshots", min_count=6, problems=problems)
+    n_shots = check_screenshots(repo / "submission" / "screenshots", min_count=7, problems=problems)
     if n_shots:
         print(f"  ✓ submission/screenshots/ has {n_shots} image(s)")
 

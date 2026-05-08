@@ -56,8 +56,8 @@ See [`BONUS-CHALLENGE.md`](BONUS-CHALLENGE.md) — completely separate, no point
 
 ### Option A — Lightweight (default)
 - GitHub repo (public) with executed notebooks (output cells preserved)
-- `submission/screenshots/` (≥ 6 PNG/JPG)
-- `submission/REFLECTION.md` (6 sections, ≥ 150 words on §3 + §6)
+- `submission/screenshots/` (≥ 7 PNG/JPG)
+- `submission/REFLECTION.md` (7 sections, ≥ 150 words on §3 + §6)
 - `make verify` passes
 
 ### Option B — Professional (+5 bonus pts via "HuggingFace Hub push")
@@ -77,9 +77,9 @@ See [`BONUS-CHALLENGE.md`](BONUS-CHALLENGE.md) — completely separate, no point
 
 1. Push your work to `<your-username>/Day22-Track3-DPO-Alignment-Lab` (forked or fresh repo — both fine), set repo **public**.
 2. Include:
-   - 5 executed notebooks (`.ipynb` with output cells preserved) OR a single executed `colab/Lab22_DPO_T4.ipynb` if you used the Colab path
-   - `submission/screenshots/` — 6 required + 3 optional images
-   - `submission/REFLECTION.md` — all 6 sections filled, your own numbers
+   - 6 executed notebooks (`.ipynb` with output cells preserved) OR the split Colab pair (`colab/Lab22_DPO_T4_Part1.ipynb`, `colab/Lab22_DPO_T4_Part2.ipynb`) OR a single executed `colab/Lab22_DPO_T4.ipynb`
+   - `submission/screenshots/` — 7 required + 3 optional images
+   - `submission/REFLECTION.md` — all 7 sections filled, your own numbers
    - **Optional:** `bonus/` folder for the ungraded creative challenge
 3. Run `make verify` locally — it will list missing artifacts, exit non-zero until you fix them.
 4. Paste the public repo URL into the LMS submission box.
